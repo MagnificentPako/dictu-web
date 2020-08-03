@@ -1,7 +1,7 @@
-import "app.du";
-import "handler.du";
+import "app.du" as A;
+import "handler.du" as H;
 
-var postHandler = HtmlHandler(def (req) =>
+var postHandler = H.HtmlHandler(def (req) =>
     r"<!DOCTYPE html>
 <html>
     <head></head>
@@ -12,12 +12,12 @@ var postHandler = HtmlHandler(def (req) =>
     </body>
 </html>");
 
-AppBuilder()
+A.AppBuilder()
     .app_name("My Awesome Dictu App")
     .app_port(8080)
     .app_host("127.0.0.1")
-    .handle("/hello/@name", PlainHandler(def (req) => "Hello, {}!".format(req["args"]["name"])))
-    .handle("/post",        PlainHandler(def (req) => "POST received!"), ["POST"])
+    .handle("/hello/@name", H.PlainHandler(def (req) => "Hello, {}!".format(req["args"]["name"])))
+    .handle("/post",        H.PlainHandler(def (req) => "POST received!"), ["POST"])
     .handle("/post",        postHandler)
-    .default(NotFoundHandler())
+    .default(H.NotFoundHandler())
     .run();

@@ -28,6 +28,30 @@ class PlainHandler < Handler {
 
 class NotFoundHandler < Handler {
     handle(request) {
-        return super.formatResponse("404 Not Found", "Not Found");
+        return super.formatResponse("404 Not Found", 
+r"<!DOCTYPE html>
+<html>
+    <head>
+        <title>404 Not Found</title>
+        <style>
+            body {
+                height: 100%;
+                width: 100%;
+                display: flex;
+                font-family: sans-serif;
+                margin: 0;
+                justify-content: center;
+                align-items: center;
+            }
+            p {
+                font-size: 31pt;
+            }
+        </style>
+    </head>
+    <body>
+        <p>404 NOT FOUND</p>
+    </body>
+</html>
+", "text/html");
     }
 }
