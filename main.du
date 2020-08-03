@@ -1,0 +1,23 @@
+import "app.du";
+import "handler.du";
+
+var postHandler = HtmlHandler(def (req) =>
+    r"<!DOCTYPE html>
+<html>
+    <head></head>
+    <body>
+        <form method='post' action='/post'>
+            <input type='submit'>
+        </form>
+    </body>
+</html>");
+
+AppBuilder()
+    .app_name("My Awesome Dictu App")
+    .app_port(8080)
+    .app_host("127.0.0.1")
+    .handle("/hello/@name", PlainHandler(def (req) => "Hello, {}!".format(req["args"]["name"])))
+    .handle("/post",        PlainHandler(def (req) => "POST received!"), ["POST"])
+    .handle("/post",        postHandler)
+    .default(NotFoundHandler())
+    .run();

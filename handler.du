@@ -1,0 +1,33 @@
+abstract class Handler {
+    abstract handle(request)
+
+    formatResponse(status, body="", mime="text/plain", headers=[]) {
+        return "HTTP/1.1 {}\nContent-Length:{}\nContent-Type:{}\n\n{}".format(status, body.len(), mime, body);
+    }
+}
+
+class HtmlHandler < Handler {
+    init(fun) {
+        this.fun = fun;
+    }
+
+    handle(request) {
+        return super.formatResponse("200 OK", this.fun(request), "text/html");
+    }
+}
+
+class PlainHandler < Handler {
+    init(fun) {
+        this.fun = fun;
+    }
+
+    handle(request) {
+        return super.formatResponse("200 OK", this.fun(request));
+    }
+}
+
+class NotFoundHandler < Handler {
+    handle(request) {
+        return super.formatResponse("404 Not Found", "Not Found");
+    }
+}

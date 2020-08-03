@@ -1,0 +1,79 @@
+import Socket;
+import "handler.du" as H;
+
+class AppBuilder {
+    init() {
+        this.name = "Dictu Web App";
+        this.handlers = [];
+        this.port = 8080;
+        this.host = "127.0.0.1";
+        this.default_handler = def () => "";
+    }
+
+    app_name(name)   { this.name = name; return this; }
+    app_port(port)   { this.port = port; return this; }
+    app_host(host)   { this.host = host; return this; }
+    default(handler) { this.default_handler = handler; return this; }
+
+    handle(route, handler, methods=['GET']) { 
+        this.handlers.push([ route
+                           , handler
+                           , methods ]); 
+        return this;
+    }
+
+    run() {
+        var socket = Socket.create(Socket.AF_INET, Socket.SOCK_STREAM);
+        socket.setsockopt(Socket.SOL_SOCKET, Socket.SO_REUSEADDR);
+        print("Starting {} on {}:{}...".format(this.name, this.host, this.port));
+        if (!socket.bind(this.host, this.port)) {
+            print(Socket.strerror());
+            return;
+        }
+        socket.listen();
+        var buf = "";
+
+        def dispatch(r, m, h, s) {
+            print("[{}] {}".format(m, r));
+
+            def comp(l, ll) {
+                var args = {};
+                for(var i = 0; i < l.len(); ++i) {
+                    if((l[i] != ll[i]) and (!l[i].startsWith("@"))) {
+                        return nil;
+                    } else if(l[i].startsWith("@")) {
+                        args[l[i][1:]] = ll[i];
+                    }
+                }
+                return args;
+            }
+
+            for(var i = 0; i < h.len(); ++i) {
+                var route = h[i][0].split("/");
+                var req_route = r.split("/");
+                if(route.len() != req_route.len()) continue;
+                var res = comp(route, req_route);
+                if(type(res) == "dict") {
+                    if(!h[i][2].contains(m)) continue;
+                    s.write(h[i][1].handle({"args": res, "method": m}));
+                    s.close();
+                    return;
+                }
+            }
+            s.write(this.default_handler.handle({}));
+            s.close();
+        }
+
+        while {
+            var stream = socket.accept();
+            while(!buf.endsWith("\r\n")) {
+                var data = stream.recv(2048);
+                buf = buf + data;
+            }
+            var raw_req = buf.split("\n");
+            var req = raw_req[0].strip().split(" ");
+            buf = "";
+            dispatch(req[1], req[0], this.handlers, stream);
+        }
+    }
+}
